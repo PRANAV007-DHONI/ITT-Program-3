@@ -1,0 +1,60 @@
+#include <stdlib.h>
+typedef struct {
+    int** prefixSum;
+    int rows;
+    int cols;
+} NumMatrix;
+
+NumMatrix* numMatrixCreate(int** matrix, int matrixSize, int* matrixColSize) {
+    NumMatrix* obj = (NumMatrix*)malloc(sizeof(NumMatrix));
+    if (matrixSize == 0 || matrixColSize[0] == 0) {
+        obj->prefixSum = NULL;
+        obj->rows = 0;
+        obj->cols = 0;
+        return obj;
+    }
+
+    int m = matrixSize;
+    int n = matrixColSize[0];
+    obj->rows = m;
+    obj->cols = n;
+
+
+    obj->prefixSum = (int**)malloc((m + 1) * sizeof(int*));
+    for (int i = 0; i <= m; i++) {
+        obj->prefixSum[i] = (int*)calloc((n + 1), sizeof(int));
+    }
+
+
+    for (int i = 1; i <= m; i++) {
+        for (int j = 1; j <= n; j++) {
+            obj->prefixSum[i][j] = matrix[i - 1][j - 1] 
+                                 + obj->prefixSum[i - 1][j] 
+                                 + obj->prefixSum[i][j - 1] 
+                                 - obj->prefixSum[i - 1][j - 1];
+        }
+    }
+
+    return obj;
+}
+
+int numMatrixSumRegion(NumMatrix* obj, int row1, int col1, int row2, int col2) {
+    if (!obj || !obj->prefixSum) return 0;
+
+    return obj->prefixSum[row2 + 1][col2 + 1] 
+         - obj->prefixSum[row1][col2 + 1] 
+         - obj->prefixSum[row2 + 1][col1] 
+         + obj->prefixSum[row1][col1];
+}
+
+void numMatrixFree(NumMatrix* obj) {
+    if (obj) {
+        if (obj->prefixSum) {
+            for (int i = 0; i <= obj->rows; i++) {
+                free(obj->prefixSum[i]);
+            }
+            free(obj->prefixSum);
+        }
+        free(obj);
+    }
+}
